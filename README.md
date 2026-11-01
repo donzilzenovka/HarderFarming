@@ -1,0 +1,2 @@
+# HarderFarming
+Early farming difficulty
