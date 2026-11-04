@@ -30,8 +30,15 @@ public final class CropInspector {
         fr.drawStringWithShadow("HarderFarming inspector", left, top, color);
         fr.drawStringWithShadow("Block: " + Block.blockRegistry.getNameForObject(b), left, top + 11, 0xFFFFFF);
         if (dead) {
-            fr.drawStringWithShadow("Condition: WITHERED (permanent)", left, top + 22, 0xAA9988);
-            fr.drawStringWithShadow("Clear by breaking; no harvest", left, top + 33, 0xAAAAAA);
+            net.minecraft.tileentity.TileEntity te = w.getTileEntity(x, y, z);
+            if (te instanceof com.zenovka.harderfarming.TileEntityPlantCondition) {
+                com.zenovka.harderfarming.TileEntityPlantCondition p = (com.zenovka.harderfarming.TileEntityPlantCondition)te;
+                fr.drawStringWithShadow("Original: " + p.originalBlock + " @ " + p.originalMetadata, left, top + 22, 0xFFFFFF);
+                fr.drawStringWithShadow("Condition: " + (p.condition == 2 ? "DEAD" : "SICK"), left, top + 33, 0xAA9988);
+            } else {
+                fr.drawStringWithShadow("Condition: WITHERED (legacy)", left, top + 22, 0xAA9988);
+            }
+            
         } else {
             int stage = Math.max(0, Math.min(7, w.getBlockMetadata(x, y, z)));
             double risk = stage >= 7 ? 0 : HarderFarming.seedlingRisk *
