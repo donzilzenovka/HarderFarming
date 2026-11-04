@@ -10,6 +10,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
+import org.lwjgl.BufferUtils;
+import java.nio.FloatBuffer;
 
 /** Preserve the original icon and choose standard crop (#) or crossed-plant (X) layout. */
 public final class RenderPlantCondition extends TileEntitySpecialRenderer {
@@ -29,41 +31,34 @@ public final class RenderPlantCondition extends TileEntitySpecialRenderer {
                 && plant.getWorldObj().getBlock(plant.xCoord, plant.yCoord - 1, plant.zCoord) == Blocks.farmland) {
             GL11.glTranslated(0.0, -1.0 / 16.0, 0.0);
         }
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_CURRENT_BIT | GL11.GL_COLOR_BUFFER_BIT);
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_CURRENT_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_TEXTURE_BIT);
         GL11.glDisable(GL11.GL_CULL_FACE);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
-        GL11.glColor4f(plant.condition == TileEntityPlantCondition.DEAD ? .53f : .72f,
-                plant.condition == TileEntityPlantCondition.DEAD ? .48f : .64f,
-                plant.condition == TileEntityPlantCondition.DEAD ? .41f : .40f, 1f);
+        if (plant.condition == TileEntityPlantCondition.DEAD) {
+            // Single-pass colour interpolation: 68% straw, 32% original RGB.
+            // Keep the texture alpha untouched. No coincident overlay polygons.
+            FloatBuffer constant = BufferUtils.createFloatBuffer(4);
+            constant.put(new float[]{0f, 0f, 0f, .68f}).flip();
+            GL11.glTexEnv(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_COLOR, constant);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL13.GL_COMBINE);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_RGB, GL13.GL_INTERPOLATE);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_RGB, GL13.GL_PRIMARY_COLOR);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE1_RGB, GL11.GL_TEXTURE);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE2_RGB, GL13.GL_CONSTANT);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND2_RGB, GL11.GL_SRC_ALPHA);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_ALPHA, GL11.GL_REPLACE);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
+            GL11.glColor4f(.68f, .49f, .35f, 1f);
+        } else {
+            GL11.glColor4f(.72f, .64f, .40f, 1f);
+        }
         Tessellator t = Tessellator.instance;
-        t.startDrawingQuads();
         double u0 = icon.getMinU(), u1 = icon.getMaxU();
         double v0 = icon.getMinV(), v1 = icon.getMaxV();
+        t.startDrawingQuads();
         drawPlanes(t, plant.originalRenderType, u0, u1, v0, v1);
         t.draw();
-        if (plant.condition == TileEntityPlantCondition.DEAD) {
-            // A translucent neutral-grey overlay blends green toward grey while retaining
-            // the underlying sprite detail. Unlike a brown multiply, this reduces saturation.
-            GL11.glEnable(GL11.GL_BLEND);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GL11.glDepthFunc(GL11.GL_LEQUAL);
-            GL11.glDepthMask(false);
-            // Keep the original sprite alpha mask while replacing RGB with neutral colour.
-            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL13.GL_COMBINE);
-            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_RGB, GL11.GL_REPLACE);
-            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_RGB, GL13.GL_PRIMARY_COLOR);
-            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_ALPHA, GL11.GL_MODULATE);
-            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
-            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE1_ALPHA, GL13.GL_PRIMARY_COLOR);
-            GL11.glColor4f(.42f, .39f, .35f, .68f);
-            t.startDrawingQuads();
-            drawPlanes(t, plant.originalRenderType, u0, u1, v0, v1);
-            t.draw();
-            GL11.glDepthMask(true);
-            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE);
-            GL11.glDepthFunc(GL11.GL_LEQUAL);
-        }
         GL11.glPopAttrib();
         GL11.glPopMatrix();
     }
