@@ -9,6 +9,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
+import net.minecraft.util.AxisAlignedBB;
 import java.util.Random;
 
 /** Persistent dead plant; the original sprite and render type are stored in its tile entity. */
@@ -22,6 +23,21 @@ public final class WitheredCrop extends BlockBush implements net.minecraft.block
         setBlockBounds(.15F, 0F, .15F, .85F, 1F, .85F);
     }
     @Override public TileEntity createNewTileEntity(World world, int metadata) { return new TileEntityPlantCondition(); }
+    @Override public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
+        TileEntity tile = world.getTileEntity(x, y, z);
+        if (tile instanceof TileEntityPlantCondition) {
+            TileEntityPlantCondition plant = (TileEntityPlantCondition)tile;
+            setBlockBounds(plant.minX, plant.minY, plant.minZ, plant.maxX, plant.maxY, plant.maxZ);
+        } else {
+            setBlockBounds(.15f, 0f, .15f, .85f, 1f, .85f);
+        }
+    }
+    @Override public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
+        setBlockBoundsBasedOnState(world, x, y, z);
+        return AxisAlignedBB.getBoundingBox(x + getBlockBoundsMinX(), y + getBlockBoundsMinY(), z + getBlockBoundsMinZ(),
+                x + getBlockBoundsMaxX(), y + getBlockBoundsMaxY(), z + getBlockBoundsMaxZ());
+    }
+    @Override public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) { return null; }
     @Override public int getRenderType() { return -1; }
     @Override public boolean isOpaqueCube() { return false; }
     @Override public boolean renderAsNormalBlock() { return false; }
