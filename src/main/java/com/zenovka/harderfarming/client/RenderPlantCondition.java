@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 
 /** Preserve the original icon and choose standard crop (#) or crossed-plant (X) layout. */
 public final class RenderPlantCondition extends TileEntitySpecialRenderer {
@@ -41,12 +42,19 @@ public final class RenderPlantCondition extends TileEntitySpecialRenderer {
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GL11.glDepthFunc(GL11.GL_LEQUAL);
             GL11.glDepthMask(false);
-            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            // Keep the original sprite alpha mask while replacing RGB with neutral colour.
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL13.GL_COMBINE);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_RGB, GL11.GL_REPLACE);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_RGB, GL13.GL_PRIMARY_COLOR);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_ALPHA, GL11.GL_MODULATE);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE1_ALPHA, GL13.GL_PRIMARY_COLOR);
             GL11.glColor4f(.42f, .39f, .35f, .68f);
             t.startDrawingQuads();
             drawPlanes(t, plant.originalRenderType, u0, u1, v0, v1);
             t.draw();
             GL11.glDepthMask(true);
+            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE);
             GL11.glDepthFunc(GL11.GL_LEQUAL);
         }
         GL11.glPopAttrib();
