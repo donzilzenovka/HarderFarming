@@ -31,9 +31,12 @@ public final class RenderPlantCondition extends TileEntitySpecialRenderer {
         t.startDrawingQuads();
         double u0 = icon.getMinU(), u1 = icon.getMaxU();
         double v0 = icon.getMinV(), v1 = icon.getMaxV();
-        double h = 1.0;
-        quad(t, .15, 0, .15, .85, h, .85, u0, u1, v0, v1);
-        quad(t, .85, 0, .15, .15, h, .85, u0, u1, v0, v1);
+        double h = Math.max(.0625, plant.maxY - plant.minY);
+        double base = plant.minY;
+        double leftX = plant.minX, rightX = plant.maxX;
+        double leftZ = plant.minZ, rightZ = plant.maxZ;
+        quad(t, leftX, base, leftZ, rightX, base + h, rightZ, u0, u1, v0, v1);
+        quad(t, rightX, base, leftZ, leftX, base + h, rightZ, u0, u1, v0, v1);
         t.draw();
         GL11.glColor4f(1, 1, 1, 1);
         GL11.glEnable(GL11.GL_LIGHTING);
