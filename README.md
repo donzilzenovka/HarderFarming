@@ -25,3 +25,7 @@ The dead plant is now a condition block with persistent NBT fields `OriginalBloc
 ## Original crop render orientation (experimental)
 
 The geometry/bounding-box snapshot changes introduced in bfc84b5 have been rolled back. The tile entity retains original crop registry name, metadata and render type, but no longer captures or serializes per-crop bounds. The tile renderer uses four offset upright planes (`#`) for render type 6 (vanilla crops), two crossed planes (`X`) for type 1, and a crossed fallback for other/custom types. Sprite transparency determines visible growth-stage height. The condition block's selection bounds revert to the earlier fixed size, so oversized targeting may return. **Not locally compiled or game-tested.**
+
+## Selection bounds and desaturation experiment
+
+The original crop selection AABB is captured immediately before block replacement and saved in the condition tile entity. Only the selection/collision logic uses these bounds; the sprite renderer still uses the original render type (# for type 6, X fallback) and full texture UVs. The dead renderer now adds a neutral grey-brown translucent overlay using the original texture's alpha mask, reducing visible green saturation. Legacy withered tile entities without bounds use the old fixed selection box. This OpenGL path is experimental and has not been compiled or visually tested here; check alpha cutouts and other mods' rendering after rebuilding.
