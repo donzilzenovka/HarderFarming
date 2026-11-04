@@ -32,7 +32,29 @@ public final class RenderPlantCondition extends TileEntitySpecialRenderer {
         t.startDrawingQuads();
         double u0 = icon.getMinU(), u1 = icon.getMaxU();
         double v0 = icon.getMinV(), v1 = icon.getMaxV();
-        if (plant.originalRenderType == 6) {
+        drawPlanes(t, plant.originalRenderType, u0, u1, v0, v1);
+        t.draw();
+        if (plant.condition == TileEntityPlantCondition.DEAD) {
+            // A translucent neutral-grey overlay blends green toward grey while retaining
+            // the underlying sprite detail. Unlike a brown multiply, this reduces saturation.
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glDepthFunc(GL11.GL_LEQUAL);
+            GL11.glDepthMask(false);
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            GL11.glColor4f(.42f, .39f, .35f, .68f);
+            t.startDrawingQuads();
+            drawPlanes(t, plant.originalRenderType, u0, u1, v0, v1);
+            t.draw();
+            GL11.glDepthMask(true);
+            GL11.glDepthFunc(GL11.GL_LEQUAL);
+        }
+        GL11.glPopAttrib();
+        GL11.glPopMatrix();
+    }
+    private static void drawPlanes(Tessellator t, int renderType,
+                                   double u0, double u1, double v0, double v1) {
+        if (renderType == 6) {
             // Vanilla crop layout: two planes along X and two along Z, inset by 1/4 block.
             // Full-height quads preserve the original sprite's transparent padding.
             plane(t, .0, 0, .25, 1.0, 1.0, .25, u0, u1, v0, v1);
@@ -44,9 +66,6 @@ public final class RenderPlantCondition extends TileEntitySpecialRenderer {
             plane(t, .0, 0, .0, 1.0, 1.0, 1.0, u0, u1, v0, v1);
             plane(t, 1.0, 0, .0, .0, 1.0, 1.0, u0, u1, v0, v1);
         }
-        t.draw();
-        GL11.glPopAttrib();
-        GL11.glPopMatrix();
     }
     private static void plane(Tessellator t, double x0, double y0, double z0,
                               double x1, double y1, double z1,
