@@ -25,10 +25,16 @@ public final class CropMortality {
         // No mortality is applied here until a safe crop sampling hook is installed.
     }
 
+    /**
+     * Crop eligibility must be determined by a mod-aware adapter, not by
+     * BlockCrops inheritance or a vanilla block whitelist. Agricraft and IC2
+     * crop hosts use tile entities and their own growth stages.
+     *
+     * No generic fallback is safe: many non-crop blocks are plants, and
+     * fungi must be excluded even when grown on soil-like substrates.
+     */
     static boolean eligible(Block block) {
-        return (HarderFarming.wheat && block == Blocks.wheat)
-            || (HarderFarming.carrots && block == Blocks.carrots)
-            || (HarderFarming.potatoes && block == Blocks.potatoes);
+        return false; // Pending crop-adapter registry.
     }
 
     static double riskAtStage(int stage) {
