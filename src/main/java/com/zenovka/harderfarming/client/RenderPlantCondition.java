@@ -2,6 +2,7 @@ package com.zenovka.harderfarming.client;
 
 import com.zenovka.harderfarming.TileEntityPlantCondition;
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -22,6 +23,12 @@ public final class RenderPlantCondition extends TileEntitySpecialRenderer {
         bindTexture(TextureMap.locationBlocksTexture);
         GL11.glPushMatrix();
         GL11.glTranslated(x, y, z);
+        // Farmland is 15/16 high. Match the vanilla crop sprite's vertical inset;
+        // do not alter the independently captured selection bounding box.
+        if (plant.originalRenderType == 6 && plant.getWorldObj() != null
+                && plant.getWorldObj().getBlock(plant.xCoord, plant.yCoord - 1, plant.zCoord) == Blocks.farmland) {
+            GL11.glTranslated(0.0, -1.0 / 16.0, 0.0);
+        }
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_CURRENT_BIT | GL11.GL_COLOR_BUFFER_BIT);
         GL11.glDisable(GL11.GL_CULL_FACE);
         GL11.glDisable(GL11.GL_LIGHTING);
