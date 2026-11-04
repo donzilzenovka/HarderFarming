@@ -36,7 +36,15 @@ public final class CropMortality {
                     if (!eligible(world, x, y, z, block)) continue;
                     int stage = Math.max(0, Math.min(7, world.getBlockMetadata(x, y, z)));
                     if (stage < 7 && random.nextDouble() < riskAtStage(stage)) {
-                        world.setBlock(x, y, z, HarderFarming.witheredCrop, 0, 3);
+                        Block old = block;
+                        int oldMeta = world.getBlockMetadata(x, y, z);
+                        if (world.setBlock(x, y, z, HarderFarming.witheredCrop, 0, 3)) {
+                            net.minecraft.tileentity.TileEntity te = world.getTileEntity(x, y, z);
+                            if (te instanceof TileEntityPlantCondition) {
+                                ((TileEntityPlantCondition)te).capture(old, oldMeta);
+                                world.markBlockForUpdate(x, y, z);
+                            }
+                        }
                     }
                     break;
                 }
