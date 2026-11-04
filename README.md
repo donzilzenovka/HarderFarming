@@ -4,12 +4,14 @@ Forge 1.7.10 crop mortality mod, built using EntityGovernor's RetroFuturaGradle 
 
 ## Intended behaviour
 
-Apply stage-dependent crop failure to **soil-grown agricultural plants across mods**, not just vanilla blocks. Seedlings are most vulnerable; risk decreases toward zero at maturity. Eligible systems include vanilla crops, Pam's HarvestCraft, Agricraft crop sticks, and IC2 crops. Nether wart, mushrooms, mycelium-based fungi and non-agricultural plants are excluded.
+Apply stage-dependent failure to **agricultural crops planted directly in soil/farmland**, whether vanilla or modded. Seedlings are most vulnerable; risk decreases to zero at maturity.
 
-A crop adapter must provide: (1) eligibility and fungus exclusion; (2) normalized growth progress 0..1; (3) a safe method to kill the plant without destroying its substrate or violating the crop host's internal state. Adapter-specific exclusions and overrides should be configurable.
+**Exclude all crop-stick and crop-host cultivation** (including Agricraft and IC2 crop systems), even when the plant species could also grow directly in soil. Also exclude fungi such as nether wart and mushrooms, and non-agricultural vegetation.
+
+Crop adapters must supply (1) eligibility based on actual planting mechanism and substrate, (2) normalized growth progress 0..1, and (3) safe removal of a failed crop without damaging farmland. Unknown plants are exempt until supported rather than risk accidental destruction. Provide configurable inclusions/exclusions.
 
 ## Development status
 
-**Not yet functional.** The Forge skeleton and configuration exist, but no crop death checks are active. The previous vanilla-only whitelist has been removed. Do not ship this branch as a gameplay release until the mod-specific crop adapters, efficient server-side sampling, and tests are implemented.
+**Not yet functional.** Forge skeleton and configuration exist, but no crop death checks are active. The old vanilla whitelist was removed. The config still has provisional vanilla-oriented switches; replace these when implementing direct-plant adapters and efficient server-side sampling.
 
-The existing `config/harderfarming.cfg` still contains provisional vanilla-oriented settings; they will be replaced as adapters are added.
+Do not ship as a gameplay release until integration and tests are complete.
