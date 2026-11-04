@@ -43,6 +43,7 @@ public final class HarderFarming {
         if (cfg.hasChanged()) cfg.save();
         witheredCrop = new WitheredCrop();
         GameRegistry.registerBlock(witheredCrop, "witheredCrop");
+        GameRegistry.registerTileEntity(TileEntityPlantCondition.class, "harderfarming.plantCondition");
     }
 
     @Mod.EventHandler
