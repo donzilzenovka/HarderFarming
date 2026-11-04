@@ -1,6 +1,7 @@
 package com.zenovka.harderfarming;
 
 import net.minecraft.block.BlockBush;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.util.IIcon;
@@ -12,15 +13,19 @@ import net.minecraft.item.Item;
 import java.util.Random;
 
 /** Dead plant occupying the original planting position. No drops or growth. */
-public final class WitheredCrop extends BlockBush {
+public final class WitheredCrop extends BlockBush implements net.minecraft.block.ITileEntityProvider {
     private IIcon icon;
     public WitheredCrop() {
         super(Material.plants);
         setBlockName("harderfarming.witheredCrop");
         setHardness(0.0F);
         setStepSound(soundTypeGrass);
-        setBlockBounds(0.15F, 0.0F, 0.15F, 0.85F, 0.55F, 0.85F);
+        setBlockBounds(0.15F, 0.0F, 0.15F, 0.85F, 1.0F, 0.85F);
     }
+    @Override public TileEntity createNewTileEntity(World world, int metadata) { return new TileEntityPlantCondition(); }
+    @Override public int getRenderType() { return -1; }
+    @Override public boolean isOpaqueCube() { return false; }
+    @Override public boolean renderAsNormalBlock() { return false; }
     @Override public void registerBlockIcons(IIconRegister registry) {
         icon = registry.registerIcon("minecraft:deadbush");
     }
