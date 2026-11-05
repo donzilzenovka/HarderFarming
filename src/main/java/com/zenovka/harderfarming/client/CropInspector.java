@@ -22,20 +22,27 @@ public final class CropInspector {
         World w = mc.theWorld;
         int x = hit.blockX, y = hit.blockY, z = hit.blockZ;
         Block b = w.getBlock(x, y, z);
-        boolean dead = b == HarderFarming.witheredCrop;
-        boolean eligible = !dead && b instanceof net.minecraft.block.BlockCrops &&
+        boolean conditioned = b == HarderFarming.witheredCrop;
+        boolean eligible = !conditioned && b instanceof net.minecraft.block.BlockCrops &&
                 w.getBlock(x, y - 1, z) == Blocks.farmland;
-        if (!dead && !eligible) return;
+        if (!conditioned && !eligible) return;
         FontRenderer fr = mc.fontRenderer;
         int left = 6, top = 6, color = 0xDDCCAA;
         fr.drawStringWithShadow("HarderFarming inspector", left, top, color);
         fr.drawStringWithShadow("Block: " + Block.blockRegistry.getNameForObject(b), left, top + 11, 0xFFFFFF);
-        if (dead) {
+        if (conditioned) {
             net.minecraft.tileentity.TileEntity te = w.getTileEntity(x, y, z);
             if (te instanceof com.zenovka.harderfarming.TileEntityPlantCondition) {
                 com.zenovka.harderfarming.TileEntityPlantCondition p = (com.zenovka.harderfarming.TileEntityPlantCondition)te;
                 fr.drawStringWithShadow("Original: " + p.originalBlock + " @ " + p.originalMetadata, left, top + 22, 0xFFFFFF);
                 fr.drawStringWithShadow("Condition: " + (p.condition == 2 ? "DEAD" : "SICK"), left, top + 33, 0xAA9988);
+                if (p.condition == 1) {
+                    int remaining = Math.max(0, HarderFarming.sicknessDurationMinutes * 60 - p.conditionAge / 20);
+                    fr.drawStringWithShadow("Illness remaining: ~" + remaining + "s (loaded time)", left, top + 44, 0xDDCCAA);
+                    fr.drawStringWithShadow(String.format(java.util.Locale.ROOT,
+                            "Natural recovery chance: %.0f%%", HarderFarming.naturalRecoveryChance * 100),
+                            left, top + 55, 0xAAAAAA);
+                }
             } else {
                 fr.drawStringWithShadow("Condition: WITHERED (legacy)", left, top + 22, 0xAA9988);
             }
@@ -45,7 +52,7 @@ public final class CropInspector {
             double risk = CropMortality.riskAtStage(stage);
             fr.drawStringWithShadow("Growth: " + stage + "/7  Condition: alive", left, top + 22, 0xFFFFFF);
             fr.drawStringWithShadow(String.format(java.util.Locale.ROOT,
-                    "Mortality: %.4f%% / sampled check", risk * 100), left, top + 33, 0xDDCCAA);
+                    "Sickness: %.4f%% / sampled check", risk * 100), left, top + 33, 0xDDCCAA);
             fr.drawStringWithShadow("Cultivation: direct farmland", left, top + 44, 0xAAAAAA);
             fr.drawStringWithShadow(HarderFarming.useLifetimeTarget
                     ? String.format(java.util.Locale.ROOT, "Target lifetime survival: %.1f%% (%d min)",
