@@ -4,6 +4,7 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraftforge.common.config.Configuration;
@@ -58,6 +59,11 @@ public final class HarderFarming {
         witheredCrop = new WitheredCrop();
         GameRegistry.registerBlock(witheredCrop, "witheredCrop");
         GameRegistry.registerTileEntity(TileEntityPlantCondition.class, "harderfarming.plantCondition");
+    }
+
+    @Mod.EventHandler
+    public void serverStarting(FMLServerStartingEvent event) {
+        event.registerServerCommand(new CommandHarderFarming());
     }
 
     @Mod.EventHandler
