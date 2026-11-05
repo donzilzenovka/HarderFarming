@@ -39,6 +39,7 @@ public final class TileEntityPlantCondition extends TileEntity {
         health = 1.0f;
         conditionAge = 0;
         outcomeRecovery = worldObj.rand.nextDouble() < HarderFarming.naturalRecoveryChance;
+        CropHealthStats.get(worldObj).illness();
         markDirty();
     }
 
@@ -50,9 +51,13 @@ public final class TileEntityPlantCondition extends TileEntity {
             if (conditionAge % 200 == 0) markDirty();
             return;
         }
-        if (outcomeRecovery && recover()) return;
+        if (outcomeRecovery && recover()) {
+            CropHealthStats.get(worldObj).recovery();
+            return;
+        }
         condition = DEAD;
         health = 0;
+        CropHealthStats.get(worldObj).death();
         markDirty();
         worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
     }
