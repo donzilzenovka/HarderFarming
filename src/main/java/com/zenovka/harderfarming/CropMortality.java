@@ -53,6 +53,7 @@ public final class CropMortality {
                             net.minecraft.tileentity.TileEntity te = world.getTileEntity(x, y, z);
                             if (te instanceof TileEntityPlantCondition) {
                                 ((TileEntityPlantCondition)te).capture(old, oldMeta);
+                                ((TileEntityPlantCondition)te).beginSickness();
                                 ((TileEntityPlantCondition)te).setSelection(selection);
                                 world.markBlockForUpdate(x, y, z);
                             }
@@ -85,6 +86,8 @@ public final class CropMortality {
     public static double calibratedSeedlingRisk() {
         if (!HarderFarming.useLifetimeTarget) return HarderFarming.seedlingRisk;
         double survival = HarderFarming.targetLifetimeSurvival;
+        double failureChance = 1.0 - HarderFarming.naturalRecoveryChance;
+        if (failureChance <= 0.0) return 0.0; // A 100% recovery rate cannot produce mortality.
         if (survival >= 1) return 0;
         if (survival <= 0) return 1;
         // Assume equal time in growth stages 0..6; maturity is immune.
@@ -92,7 +95,11 @@ public final class CropMortality {
         for (int stage = 0; stage < 7; stage++)
             meanWeight += Math.pow(1.0 - stage / 7.0, HarderFarming.exponent) / 7.0;
         double weightedChecks = expectedChecksPerLifetime() * meanWeight;
-        return weightedChecks <= 0 ? 0 : 1.0 - Math.exp(Math.log(survival) / weightedChecks);
+        // Each illness episode is fatal with probability (1 - naturalRecoveryChance).
+        // Recovered plants may experience further episodes. The resulting natural
+        // survival probability is approximately (1 - illnessRisk * failureChance)^weightedChecks.
+        return weightedChecks <= 0 ? 0 : Math.min(1.0,
+                (1.0 - Math.exp(Math.log(survival) / weightedChecks)) / failureChance);
     }
 
     public static double riskAtStage(int stage) {
