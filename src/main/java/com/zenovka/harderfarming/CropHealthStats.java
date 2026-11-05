@@ -1,0 +1,38 @@
+package com.zenovka.harderfarming;
+
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldSavedData;
+
+/** Per-dimension cumulative illness episode counters, persisted with the world. */
+public final class CropHealthStats extends WorldSavedData {
+    private static final String KEY = "harderfarming.cropHealthStats";
+    public long illnesses, recovered, died;
+
+    public CropHealthStats() { super(KEY); }
+    public CropHealthStats(String name) { super(name); }
+
+    public static CropHealthStats get(World world) {
+        CropHealthStats data = (CropHealthStats)world.perWorldStorage.loadData(CropHealthStats.class, KEY);
+        if (data == null) {
+            data = new CropHealthStats(KEY);
+            world.perWorldStorage.setData(KEY, data);
+        }
+        return data;
+    }
+
+    public void illness() { illnesses++; markDirty(); }
+    public void recovery() { recovered++; markDirty(); }
+    public void death() { died++; markDirty(); }
+
+    @Override public void readFromNBT(NBTTagCompound tag) {
+        illnesses = tag.getLong("Illnesses");
+        recovered = tag.getLong("Recovered");
+        died = tag.getLong("Died");
+    }
+    @Override public void writeToNBT(NBTTagCompound tag) {
+        tag.setLong("Illnesses", illnesses);
+        tag.setLong("Recovered", recovered);
+        tag.setLong("Died", died);
+    }
+}
