@@ -12,7 +12,9 @@ import net.minecraftforge.common.config.Configuration;
 public final class HarderFarming {
     public static final String MODID = "harderfarming";
     public static boolean enabled, wheat, carrots, potatoes, moddedCrops, debugHud;
-    public static double seedlingRisk, exponent;
+    public static double seedlingRisk, exponent, targetLifetimeSurvival;
+    public static boolean useLifetimeTarget;
+    public static int expectedGrowthMinutes;
     public static int checkInterval, samplesPerPlayer;
     public static WitheredCrop witheredCrop;
 
@@ -30,8 +32,14 @@ public final class HarderFarming {
         potatoes = cfg.getBoolean("potatoes", "crops", true, "Allow potatoes to die.");
         moddedCrops = cfg.getBoolean("moddedBlockCrops", "crops", true,
                 "Include modded crops extending BlockCrops when directly planted on vanilla farmland. Crop-stick hosts are not included.");
+        useLifetimeTarget = cfg.getBoolean("useLifetimeTarget", "mortality", true,
+                "Calibrate mortality to target lifetime survival. Disable to use advanced seedlingRiskPerCheck.");
+        targetLifetimeSurvival = cfg.getFloat("targetLifetimeSurvival", "mortality", .85f, 0f, 1f,
+                "Approximate survival fraction from planting to maturity (0 to 1), for an average growing crop.");
+        expectedGrowthMinutes = cfg.getInt("expectedGrowthMinutes", "mortality", 30, 1, 1440,
+                "Assumed average minutes from planting to maturity, used for target calibration.");
         seedlingRisk = cfg.getFloat("seedlingRiskPerCheck", "mortality", 0.025f, 0f, 1f,
-                "Death probability per sampled check at growth stage 0 (default 2.5%). Not lifetime mortality.");
+                "Advanced override: seedling death probability per check, used only when useLifetimeTarget=false.");
         exponent = cfg.getFloat("declineExponent", "mortality", 2f, 0.1f, 10f,
                 "Risk multiplier (1 - stage/7)^exponent.");
         checkInterval = cfg.getInt("checkIntervalTicks", "mortality", 20, 1, 72000,
