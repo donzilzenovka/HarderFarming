@@ -19,6 +19,7 @@ public final class TileEntityPlantCondition extends TileEntity {
     public byte condition = DEAD;
     public float health = 0;
     public int conditionAge = 0;
+    private boolean outcomeRecovery = false;
 
     public void capture(Block block, int metadata) {
         Object name = Block.blockRegistry.getNameForObject(block);
@@ -27,7 +28,33 @@ public final class TileEntityPlantCondition extends TileEntity {
         originalRenderType = block.getRenderType();
         condition = DEAD;
         health = 0;
+        conditionAge = 0;
         markDirty();
+    }
+
+    /** Called once when a sampled healthy crop enters illness. */
+    public void beginSickness() {
+        if (worldObj == null || worldObj.isRemote) return;
+        condition = SICK;
+        health = 1.0f;
+        conditionAge = 0;
+        outcomeRecovery = worldObj.rand.nextDouble() < HarderFarming.naturalRecoveryChance;
+        markDirty();
+    }
+
+    /** A loaded sick crop advances in simulation ticks, not scaled day/night time. */
+    @Override public void updateEntity() {
+        if (worldObj == null || worldObj.isRemote || condition != SICK) return;
+        conditionAge++;
+        if (conditionAge < HarderFarming.sicknessDurationMinutes * 60 * 20) {
+            if (conditionAge % 200 == 0) markDirty();
+            return;
+        }
+        if (outcomeRecovery && recover()) return;
+        condition = DEAD;
+        health = 0;
+        markDirty();
+        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
     }
 
     public static float[] snapshotSelection(World world, int x, int y, int z, Block block) {
@@ -65,6 +92,7 @@ public final class TileEntityPlantCondition extends TileEntity {
         tag.setByte("Condition", condition);
         tag.setFloat("Health", health);
         tag.setInteger("ConditionAge", conditionAge);
+        tag.setBoolean("OutcomeRecovery", outcomeRecovery);
     }
     @Override public void readFromNBT(NBTTagCompound tag) {
         super.readFromNBT(tag);
@@ -76,6 +104,7 @@ public final class TileEntityPlantCondition extends TileEntity {
         condition = tag.hasKey("Condition") ? tag.getByte("Condition") : DEAD;
         health = tag.getFloat("Health");
         conditionAge = tag.getInteger("ConditionAge");
+        outcomeRecovery = tag.getBoolean("OutcomeRecovery");
         if (tag.hasKey("MaxY")) {
             minX = tag.getFloat("MinX"); minY = tag.getFloat("MinY"); minZ = tag.getFloat("MinZ");
             maxX = tag.getFloat("MaxX"); maxY = tag.getFloat("MaxY"); maxZ = tag.getFloat("MaxZ");
