@@ -1,6 +1,7 @@
 package com.zenovka.harderfarming.client;
 
 import com.zenovka.harderfarming.HarderFarming;
+import com.zenovka.harderfarming.CropMortality;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraft.client.Minecraft;
@@ -41,12 +42,15 @@ public final class CropInspector {
             
         } else {
             int stage = Math.max(0, Math.min(7, w.getBlockMetadata(x, y, z)));
-            double risk = stage >= 7 ? 0 : HarderFarming.seedlingRisk *
-                    Math.pow(1.0 - stage / 7.0, HarderFarming.exponent);
+            double risk = CropMortality.riskAtStage(stage);
             fr.drawStringWithShadow("Growth: " + stage + "/7  Condition: alive", left, top + 22, 0xFFFFFF);
             fr.drawStringWithShadow(String.format(java.util.Locale.ROOT,
                     "Mortality: %.4f%% / sampled check", risk * 100), left, top + 33, 0xDDCCAA);
             fr.drawStringWithShadow("Cultivation: direct farmland", left, top + 44, 0xAAAAAA);
+            fr.drawStringWithShadow(HarderFarming.useLifetimeTarget
+                    ? String.format(java.util.Locale.ROOT, "Target lifetime survival: %.1f%% (%d min)",
+                    HarderFarming.targetLifetimeSurvival * 100, HarderFarming.expectedGrowthMinutes)
+                    : "Mortality mode: advanced per-check override", left, top + 55, 0xAAAAAA);
         }
     }
 }
