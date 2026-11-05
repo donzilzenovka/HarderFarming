@@ -27,6 +27,16 @@ public final class CropMortality {
             for (int i = 0; i < HarderFarming.samplesPerPlayer; i++) {
                 int x = cx + random.nextInt(33) - 16;
                 int z = cz + random.nextInt(33) - 16;
+                // Each player samples the same square. Thin overlapping samples so
+                // a crop's expected check frequency does not grow with player count.
+                int coverage = 0;
+                for (Object nearby : world.playerEntities) {
+                    if (!(nearby instanceof EntityPlayer)) continue;
+                    EntityPlayer other = (EntityPlayer)nearby;
+                    int ox = (int)Math.floor(other.posX), oz = (int)Math.floor(other.posZ);
+                    if (Math.abs(x - ox) <= 16 && Math.abs(z - oz) <= 16) coverage++;
+                }
+                if (coverage > 1 && random.nextInt(coverage) != 0) continue;
                 if (!world.blockExists(x, 64, z)) continue;
                 int top = world.getHeightValue(x, z);
                 // Surface crops typically sit immediately above farmland. Examine
@@ -64,9 +74,30 @@ public final class CropMortality {
         return world.getBlock(x, y - 1, z) == Blocks.farmland;
     }
 
-    static double riskAtStage(int stage) {
+    /** Expected trials per plant during the configured average growth duration.
+     *  Sampling a uniform 33x33 square gives samplesPerPlayer/1089 trials per batch.
+     */
+    public static double expectedChecksPerLifetime() {
+        return (HarderFarming.expectedGrowthMinutes * 60.0 * 20.0
+                / HarderFarming.checkInterval) * HarderFarming.samplesPerPlayer / 1089.0;
+    }
+
+    public static double calibratedSeedlingRisk() {
+        if (!HarderFarming.useLifetimeTarget) return HarderFarming.seedlingRisk;
+        double survival = HarderFarming.targetLifetimeSurvival;
+        if (survival >= 1) return 0;
+        if (survival <= 0) return 1;
+        // Assume equal time in growth stages 0..6; maturity is immune.
+        double meanWeight = 0;
+        for (int stage = 0; stage < 7; stage++)
+            meanWeight += Math.pow(1.0 - stage / 7.0, HarderFarming.exponent) / 7.0;
+        double weightedChecks = expectedChecksPerLifetime() * meanWeight;
+        return weightedChecks <= 0 ? 0 : 1.0 - Math.exp(Math.log(survival) / weightedChecks);
+    }
+
+    public static double riskAtStage(int stage) {
         if (stage >= 7) return 0.0;
-        return HarderFarming.seedlingRisk *
+        return calibratedSeedlingRisk() *
                 Math.pow(1.0 - Math.max(0, stage) / 7.0, HarderFarming.exponent);
     }
 }
