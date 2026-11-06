@@ -7,7 +7,7 @@ import net.minecraft.world.WorldSavedData;
 /** Per-dimension cumulative illness episode counters, persisted with the world. */
 public final class CropHealthStats extends WorldSavedData {
     private static final String KEY = "harderfarming.cropHealthStats";
-    public long illnesses, recovered, died, treated;
+    public long illnesses, recovered, died, treated, boosted, boostedRecovered, boostedDied;
 
     public CropHealthStats() { super(KEY); }
     public CropHealthStats(String name) { super(name); }
@@ -23,6 +23,9 @@ public final class CropHealthStats extends WorldSavedData {
 
     public void illness() { illnesses++; markDirty(); }
     public void recovery() { recovered++; markDirty(); }
+    public void boost() { boosted++; markDirty(); }
+    public void boostedRecovery() { boostedRecovered++; markDirty(); }
+    public void boostedDeath() { boostedDied++; markDirty(); }
     public void treatment() { treated++; markDirty(); }
     public void death() { died++; markDirty(); }
 
@@ -31,11 +34,17 @@ public final class CropHealthStats extends WorldSavedData {
         recovered = tag.getLong("Recovered");
         died = tag.getLong("Died");
         treated = tag.getLong("Treated");
+        boosted = tag.getLong("Boosted");
+        boostedRecovered = tag.getLong("BoostedRecovered");
+        boostedDied = tag.getLong("BoostedDied");
     }
     @Override public void writeToNBT(NBTTagCompound tag) {
         tag.setLong("Illnesses", illnesses);
         tag.setLong("Recovered", recovered);
         tag.setLong("Died", died);
         tag.setLong("Treated", treated);
+        tag.setLong("Boosted", boosted);
+        tag.setLong("BoostedRecovered", boostedRecovered);
+        tag.setLong("BoostedDied", boostedDied);
     }
 }
