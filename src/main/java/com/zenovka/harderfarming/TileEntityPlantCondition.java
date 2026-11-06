@@ -54,12 +54,14 @@ public final class TileEntityPlantCondition extends TileEntity {
             return;
         }
         if (outcomeRecovery && recover()) {
-            CropHealthStats.get(worldObj).recovery();
+            if (recoveryBoosted) CropHealthStats.get(worldObj).boostedRecovery();
+            else CropHealthStats.get(worldObj).recovery();
             return;
         }
         condition = DEAD;
         health = 0;
-        CropHealthStats.get(worldObj).death();
+        if (recoveryBoosted) CropHealthStats.get(worldObj).boostedDeath();
+        else CropHealthStats.get(worldObj).death();
         markDirty();
         worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
     }
@@ -68,6 +70,7 @@ public final class TileEntityPlantCondition extends TileEntity {
     public boolean boostRecovery() {
         if (worldObj == null || worldObj.isRemote || condition != SICK || recoveryBoosted) return false;
         recoveryBoosted = true;
+        CropHealthStats.get(worldObj).boost();
         outcomeRecovery = worldObj.rand.nextDouble()
                 < Math.max(HarderFarming.naturalRecoveryChance, HarderFarming.boostedRecoveryChance);
         markDirty();
