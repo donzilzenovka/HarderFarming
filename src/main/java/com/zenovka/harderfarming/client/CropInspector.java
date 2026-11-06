@@ -40,7 +40,9 @@ public final class CropInspector {
                     int remaining = Math.max(0, HarderFarming.sicknessDurationMinutes * 60 - p.conditionAge / 20);
                     fr.drawStringWithShadow("Illness remaining: ~" + remaining + "s (loaded time)", left, top + 44, 0xDDCCAA);
                     fr.drawStringWithShadow(String.format(java.util.Locale.ROOT,
-                            "Natural recovery chance: %.0f%%", HarderFarming.naturalRecoveryChance * 100),
+                            "Recovery chance: %.0f%% (%s)",
+                            (p.recoveryBoosted ? Math.max(HarderFarming.naturalRecoveryChance, HarderFarming.boostedRecoveryChance) : HarderFarming.naturalRecoveryChance) * 100,
+                            p.recoveryBoosted ? "boosted" : "natural"),
                             left, top + 55, 0xAAAAAA);
                 }
             } else {
