@@ -16,11 +16,12 @@ public final class HarderFarming {
     public static double seedlingRisk, exponent, targetLifetimeSurvival;
     public static boolean useLifetimeTarget;
     public static int expectedGrowthMinutes;
-    public static double naturalRecoveryChance;
+    public static double naturalRecoveryChance, boostedRecoveryChance;
     public static int sicknessDurationMinutes;
     public static int checkInterval, samplesPerPlayer;
     public static WitheredCrop witheredCrop;
     public static ItemCropRecovery recoveryItem;
+    public static ItemCropRecovery recoveryBoostItem;
 
     @SidedProxy(clientSide = "com.zenovka.harderfarming.client.ClientProxy",
                 serverSide = "com.zenovka.harderfarming.CommonProxy")
@@ -56,14 +57,24 @@ public final class HarderFarming {
                 "Random columns sampled per player per batch, within 16 blocks.");
         debugHud = cfg.getBoolean("debugHud", "diagnostics", true,
                 "Show crop inspector when looking at a supported crop; client setting.");
-        RecoveryItems.configure(cfg.getStringList("recoveryItems", "treatment",
+        String[] instantItems = cfg.getStringList("recoveryItems", "treatment",
                 new String[]{"harderfarming:cropRecovery"},
-                "Accepted recovery items as modid:item or modid:item@metadata. Only sick crops can be cured."));
+                "Instant cure items: modid:item or modid:item@metadata.");
+        String[] boostItems = cfg.getStringList("recoveryBoostItems", "treatment",
+                new String[]{"harderfarming:cropRecoveryBoost"},
+                "Items increasing recovery chance without curing immediately.");
+        boostedRecoveryChance = cfg.getFloat("boostedRecoveryChance", "treatment", .90f, 0f, 1f,
+                "Final recovery probability after one boost, minimum naturalRecoveryChance.");
+        RecoveryItems.configure(instantItems, boostItems);
         if (cfg.hasChanged()) cfg.save();
         witheredCrop = new WitheredCrop();
         GameRegistry.registerBlock(witheredCrop, "witheredCrop");
         recoveryItem = new ItemCropRecovery();
         GameRegistry.registerItem(recoveryItem, "cropRecovery");
+        recoveryBoostItem = new ItemCropRecovery();
+        recoveryBoostItem.setUnlocalizedName("harderfarming.cropRecoveryBoost");
+        recoveryBoostItem.setTextureName("minecraft:glowstone_dust");
+        GameRegistry.registerItem(recoveryBoostItem, "cropRecoveryBoost");
         GameRegistry.registerTileEntity(TileEntityPlantCondition.class, "harderfarming.plantCondition");
     }
 
