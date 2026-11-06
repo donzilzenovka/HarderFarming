@@ -19,11 +19,14 @@ public final class CommandHarderFarming extends CommandBase {
         }
         World world = sender.getEntityWorld();
         CropHealthStats s = CropHealthStats.get(world);
-        long resolved = s.recovered + s.died + s.treated;
+        long resolved = s.recovered + s.died + s.treated + s.boostedRecovered + s.boostedDied;
         long unresolved = Math.max(0L, s.illnesses - resolved);
         sender.addChatMessage(new ChatComponentText("HarderFarming - dimension " + world.provider.dimensionId));
         sender.addChatMessage(new ChatComponentText("Illness episodes: " + s.illnesses
                 + " | Natural recoveries: " + s.recovered + " | Deaths: " + s.died + " | Treated: " + s.treated));
+        sender.addChatMessage(new ChatComponentText("Boost applications: " + s.boosted
+                + " | Boosted recoveries: " + s.boostedRecovered
+                + " | Boosted deaths: " + s.boostedDied));
         sender.addChatMessage(new ChatComponentText("Unresolved episodes: " + unresolved
                 + " (includes crops removed while sick; not a live sick-plant count)"));
         if (s.recovered + s.died > 0) {
