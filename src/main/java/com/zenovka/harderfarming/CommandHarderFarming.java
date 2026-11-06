@@ -19,17 +19,17 @@ public final class CommandHarderFarming extends CommandBase {
         }
         World world = sender.getEntityWorld();
         CropHealthStats s = CropHealthStats.get(world);
-        long resolved = s.recovered + s.died;
+        long resolved = s.recovered + s.died + s.treated;
         long unresolved = Math.max(0L, s.illnesses - resolved);
         sender.addChatMessage(new ChatComponentText("HarderFarming - dimension " + world.provider.dimensionId));
         sender.addChatMessage(new ChatComponentText("Illness episodes: " + s.illnesses
-                + " | Natural recoveries: " + s.recovered + " | Deaths: " + s.died));
+                + " | Natural recoveries: " + s.recovered + " | Deaths: " + s.died + " | Treated: " + s.treated));
         sender.addChatMessage(new ChatComponentText("Unresolved episodes: " + unresolved
                 + " (includes crops removed while sick; not a live sick-plant count)"));
-        if (resolved > 0) {
+        if (s.recovered + s.died > 0) {
             sender.addChatMessage(new ChatComponentText(String.format(Locale.ROOT,
-                    "Recovery among resolved episodes: %.2f%% (%d/%d)",
-                    s.recovered * 100.0 / resolved, s.recovered, resolved)));
+                    "Natural recovery among untreated resolved episodes: %.2f%% (%d/%d)",
+                    s.recovered * 100.0 / (s.recovered + s.died), s.recovered, s.recovered + s.died)));
         } else {
             sender.addChatMessage(new ChatComponentText("Recovery among resolved episodes: N/A"));
         }
