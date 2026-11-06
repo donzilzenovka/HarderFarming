@@ -19,7 +19,6 @@ public final class TileEntityPlantCondition extends TileEntity {
     public byte condition = DEAD;
     public float health = 0;
     public int conditionAge = 0;
-    private boolean outcomeRecovery = false;
     public boolean recoveryBoosted = false;
 
     public void capture(Block block, int metadata) {
@@ -40,7 +39,6 @@ public final class TileEntityPlantCondition extends TileEntity {
         health = 1.0f;
         conditionAge = 0;
         recoveryBoosted = false;
-        outcomeRecovery = worldObj.rand.nextDouble() < HarderFarming.naturalRecoveryChance;
         CropHealthStats.get(worldObj).illness();
         markDirty();
     }
@@ -53,7 +51,10 @@ public final class TileEntityPlantCondition extends TileEntity {
             if (conditionAge % 200 == 0) markDirty();
             return;
         }
-        if (outcomeRecovery && recover()) {
+        double chance = recoveryBoosted
+                ? Math.max(HarderFarming.naturalRecoveryChance, HarderFarming.boostedRecoveryChance)
+                : HarderFarming.naturalRecoveryChance;
+        if (worldObj.rand.nextDouble() < chance && recover()) {
             if (recoveryBoosted) CropHealthStats.get(worldObj).boostedRecovery();
             else CropHealthStats.get(worldObj).recovery();
             return;
@@ -71,8 +72,6 @@ public final class TileEntityPlantCondition extends TileEntity {
         if (worldObj == null || worldObj.isRemote || condition != SICK || recoveryBoosted) return false;
         recoveryBoosted = true;
         CropHealthStats.get(worldObj).boost();
-        outcomeRecovery = worldObj.rand.nextDouble()
-                < Math.max(HarderFarming.naturalRecoveryChance, HarderFarming.boostedRecoveryChance);
         markDirty();
         worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
         return true;
@@ -113,7 +112,6 @@ public final class TileEntityPlantCondition extends TileEntity {
         tag.setByte("Condition", condition);
         tag.setFloat("Health", health);
         tag.setInteger("ConditionAge", conditionAge);
-        tag.setBoolean("OutcomeRecovery", outcomeRecovery);
         tag.setBoolean("RecoveryBoosted", recoveryBoosted);
     }
     @Override public void readFromNBT(NBTTagCompound tag) {
@@ -126,7 +124,6 @@ public final class TileEntityPlantCondition extends TileEntity {
         condition = tag.hasKey("Condition") ? tag.getByte("Condition") : DEAD;
         health = tag.getFloat("Health");
         conditionAge = tag.getInteger("ConditionAge");
-        outcomeRecovery = tag.getBoolean("OutcomeRecovery");
         recoveryBoosted = tag.getBoolean("RecoveryBoosted");
         if (tag.hasKey("MaxY")) {
             minX = tag.getFloat("MinX"); minY = tag.getFloat("MinY"); minZ = tag.getFloat("MinZ");
