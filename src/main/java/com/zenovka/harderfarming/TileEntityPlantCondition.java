@@ -20,6 +20,7 @@ public final class TileEntityPlantCondition extends TileEntity {
     public float health = 0;
     public int conditionAge = 0;
     private boolean outcomeRecovery = false;
+    public boolean recoveryBoosted = false;
 
     public void capture(Block block, int metadata) {
         Object name = Block.blockRegistry.getNameForObject(block);
@@ -38,6 +39,7 @@ public final class TileEntityPlantCondition extends TileEntity {
         condition = SICK;
         health = 1.0f;
         conditionAge = 0;
+        recoveryBoosted = false;
         outcomeRecovery = worldObj.rand.nextDouble() < HarderFarming.naturalRecoveryChance;
         CropHealthStats.get(worldObj).illness();
         markDirty();
@@ -60,6 +62,17 @@ public final class TileEntityPlantCondition extends TileEntity {
         CropHealthStats.get(worldObj).death();
         markDirty();
         worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+    }
+
+    /** One boost per illness; leave illness duration and growth pause unchanged. */
+    public boolean boostRecovery() {
+        if (worldObj == null || worldObj.isRemote || condition != SICK || recoveryBoosted) return false;
+        recoveryBoosted = true;
+        outcomeRecovery = worldObj.rand.nextDouble()
+                < Math.max(HarderFarming.naturalRecoveryChance, HarderFarming.boostedRecoveryChance);
+        markDirty();
+        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        return true;
     }
 
     public static float[] snapshotSelection(World world, int x, int y, int z, Block block) {
@@ -98,6 +111,7 @@ public final class TileEntityPlantCondition extends TileEntity {
         tag.setFloat("Health", health);
         tag.setInteger("ConditionAge", conditionAge);
         tag.setBoolean("OutcomeRecovery", outcomeRecovery);
+        tag.setBoolean("RecoveryBoosted", recoveryBoosted);
     }
     @Override public void readFromNBT(NBTTagCompound tag) {
         super.readFromNBT(tag);
@@ -110,6 +124,7 @@ public final class TileEntityPlantCondition extends TileEntity {
         health = tag.getFloat("Health");
         conditionAge = tag.getInteger("ConditionAge");
         outcomeRecovery = tag.getBoolean("OutcomeRecovery");
+        recoveryBoosted = tag.getBoolean("RecoveryBoosted");
         if (tag.hasKey("MaxY")) {
             minX = tag.getFloat("MinX"); minY = tag.getFloat("MinY"); minZ = tag.getFloat("MinZ");
             maxX = tag.getFloat("MaxX"); maxY = tag.getFloat("MaxY"); maxZ = tag.getFloat("MaxZ");
