@@ -54,13 +54,22 @@ public final class WitheredCrop extends BlockBush implements net.minecraft.block
     @Override public boolean onBlockActivated(World world, int x, int y, int z,
             EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
         ItemStack held = player.getCurrentEquippedItem();
-        if (!RecoveryItems.matches(held)) return false;
+        boolean instant = RecoveryItems.matchesInstant(held);
+        boolean boost = !instant && RecoveryItems.matchesBoost(held);
+        if (!instant && !boost) return false;
         TileEntity tile = world.getTileEntity(x, y, z);
         if (!(tile instanceof TileEntityPlantCondition)
                 || ((TileEntityPlantCondition)tile).condition != TileEntityPlantCondition.SICK) return false;
+        TileEntityPlantCondition plant = (TileEntityPlantCondition)tile;
+        if (boost && plant.recoveryBoosted) return false;
         if (world.isRemote) return true;
-        if (!((TileEntityPlantCondition)tile).recover()) return false;
-        CropHealthStats.get(world).treatment();
+        if (instant) {
+            if (!plant.recover()) return false;
+            CropHealthStats.get(world).treatment();
+        } else {
+            if (!plant.boostRecovery()) return false;
+            world.playAuxSFX(2005, x, y, z, 0); // Vanilla bonemeal particles
+        }
         if (!player.capabilities.isCreativeMode) {
             held.stackSize--;
             if (held.stackSize <= 0) player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
