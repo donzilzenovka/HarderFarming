@@ -20,6 +20,7 @@ public final class HarderFarming {
     public static int sicknessDurationMinutes;
     public static int checkInterval, samplesPerPlayer;
     public static WitheredCrop witheredCrop;
+    public static ItemCropRecovery recoveryItem;
 
     @SidedProxy(clientSide = "com.zenovka.harderfarming.client.ClientProxy",
                 serverSide = "com.zenovka.harderfarming.CommonProxy")
@@ -55,9 +56,14 @@ public final class HarderFarming {
                 "Random columns sampled per player per batch, within 16 blocks.");
         debugHud = cfg.getBoolean("debugHud", "diagnostics", true,
                 "Show crop inspector when looking at a supported crop; client setting.");
+        RecoveryItems.configure(cfg.getStringList("recoveryItems", "treatment",
+                new String[]{"harderfarming:cropRecovery"},
+                "Accepted recovery items as modid:item or modid:item@metadata. Only sick crops can be cured."));
         if (cfg.hasChanged()) cfg.save();
         witheredCrop = new WitheredCrop();
         GameRegistry.registerBlock(witheredCrop, "witheredCrop");
+        recoveryItem = new ItemCropRecovery();
+        GameRegistry.registerItem(recoveryItem, "cropRecovery");
         GameRegistry.registerTileEntity(TileEntityPlantCondition.class, "harderfarming.plantCondition");
     }
 
