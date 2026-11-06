@@ -9,6 +9,8 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
 import java.util.Random;
 
@@ -49,6 +51,23 @@ public final class WitheredCrop extends BlockBush implements net.minecraft.block
     @Override public int getRenderColor(int meta) { return 0x887B69; }
     @Override public int getBlockColor() { return 0x887B69; }
     @Override protected boolean canPlaceBlockOn(net.minecraft.block.Block ground) { return ground == Blocks.farmland; }
+    @Override public boolean onBlockActivated(World world, int x, int y, int z,
+            EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
+        ItemStack held = player.getCurrentEquippedItem();
+        if (!RecoveryItems.matches(held)) return false;
+        TileEntity tile = world.getTileEntity(x, y, z);
+        if (!(tile instanceof TileEntityPlantCondition)
+                || ((TileEntityPlantCondition)tile).condition != TileEntityPlantCondition.SICK) return false;
+        if (world.isRemote) return true;
+        if (!((TileEntityPlantCondition)tile).recover()) return false;
+        CropHealthStats.get(world).treatment();
+        if (!player.capabilities.isCreativeMode) {
+            held.stackSize--;
+            if (held.stackSize <= 0) player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
+            player.inventory.markDirty();
+        }
+        return true;
+    }
     @Override public Item getItemDropped(int meta, Random rand, int fortune) { return null; }
     @Override public int quantityDropped(Random rand) { return 0; }
 }
