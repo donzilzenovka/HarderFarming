@@ -7,7 +7,7 @@ import net.minecraft.world.WorldSavedData;
 /** Per-dimension cumulative illness episode counters, persisted with the world. */
 public final class CropHealthStats extends WorldSavedData {
     private static final String KEY = "harderfarming.cropHealthStats";
-    public long illnesses, recovered, died;
+    public long illnesses, recovered, died, treated;
 
     public CropHealthStats() { super(KEY); }
     public CropHealthStats(String name) { super(name); }
@@ -23,16 +23,19 @@ public final class CropHealthStats extends WorldSavedData {
 
     public void illness() { illnesses++; markDirty(); }
     public void recovery() { recovered++; markDirty(); }
+    public void treatment() { treated++; markDirty(); }
     public void death() { died++; markDirty(); }
 
     @Override public void readFromNBT(NBTTagCompound tag) {
         illnesses = tag.getLong("Illnesses");
         recovered = tag.getLong("Recovered");
         died = tag.getLong("Died");
+        treated = tag.getLong("Treated");
     }
     @Override public void writeToNBT(NBTTagCompound tag) {
         tag.setLong("Illnesses", illnesses);
         tag.setLong("Recovered", recovered);
         tag.setLong("Died", died);
+        tag.setLong("Treated", treated);
     }
 }
