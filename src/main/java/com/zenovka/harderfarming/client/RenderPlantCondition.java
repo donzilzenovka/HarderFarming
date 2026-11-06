@@ -51,7 +51,7 @@ public final class RenderPlantCondition extends TileEntitySpecialRenderer {
             GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
             GL11.glColor4f(.38f, .00f, .01f, 1f);
         } else {
-            // The same single-pass desaturation approach, but with straw coloration.
+            // The same single-pass desaturation approach, but with condition-specific lavender or pink coloration.
             FloatBuffer constant = BufferUtils.createFloatBuffer(4);
             constant.put(new float[]{0f, 0f, 0f, .68f}).flip();
             GL11.glTexEnv(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_COLOR, constant);
@@ -63,8 +63,8 @@ public final class RenderPlantCondition extends TileEntitySpecialRenderer {
             GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND2_RGB, GL11.GL_SRC_ALPHA);
             GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_ALPHA, GL11.GL_REPLACE);
             GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
-            if (plant.recoveryBoosted) GL11.glColor4f(.36f, .32f, .20f, 1f);
-            else GL11.glColor4f(.72f, .64f, .40f, 1f);
+            if (plant.recoveryBoosted) GL11.glColor4f(.92f, .52f, .72f, 1f);
+            else GL11.glColor4f(.78f, .67f, .95f, 1f);
         }
         Tessellator t = Tessellator.instance;
         double u0 = icon.getMinU(), u1 = icon.getMaxU();
