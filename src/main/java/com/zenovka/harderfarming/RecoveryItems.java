@@ -7,11 +7,18 @@ import java.util.List;
 
 /** Registry-name matching; optional @metadata suffix, wildcard by default. */
 public final class RecoveryItems {
-    private static final List<Entry> entries = new ArrayList<Entry>();
+    private static final List<Entry> instant = new ArrayList<Entry>();
+    private static final List<Entry> boost = new ArrayList<Entry>();
     private RecoveryItems() {}
 
-    public static void configure(String[] names) {
-        entries.clear();
+    public static void configure(String[] instantNames, String[] boostNames) {
+        instant.clear();
+        boost.clear();
+        parse(instantNames, instant);
+        parse(boostNames, boost);
+    }
+
+    private static void parse(String[] names, List<Entry> entries) {
         for (String raw : names) {
             String value = raw.trim();
             if (value.isEmpty()) continue;
@@ -27,7 +34,10 @@ public final class RecoveryItems {
         }
     }
 
-    public static boolean matches(ItemStack stack) {
+    public static boolean matchesInstant(ItemStack stack) { return matches(stack, instant); }
+    public static boolean matchesBoost(ItemStack stack) { return matches(stack, boost); }
+
+    private static boolean matches(ItemStack stack, List<Entry> entries) {
         if (stack == null || stack.getItem() == null) return false;
         Object key = Item.itemRegistry.getNameForObject(stack.getItem());
         if (key == null) return false;
